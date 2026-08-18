@@ -1,0 +1,24 @@
+{
+  "_comment": "USD per 1,000,000 tokens. config/pricing.json으로 복사해 실단가를 채우세요. 여기 적은 모델만 기본 표를 덮어씁니다.",
+  "_vendor_note": "Claude 계열은 app/pricing.py의 DEFAULT_PRICING에 정가 폴백이 있지만, 그 외 벤더(Gemini·Qwen·Kimi·GLM·Grok·GPT 등)는 단가 변동이 잦아 코드에 두지 않는다 — 전부 이 파일에서 관리한다. 여기에 없는 모델은 비용이 $0으로 잡히고 대시보드에 'unknown model' 경고가 뜬다. 0.0을 넣으면 경고 없이 $0이 되므로, 값을 모르면 항목을 비워 두고 경고를 남겨 두는 편이 안전하다.",
+  "models": {
+    "claude-fable-5": {
+      "input": 0.0,
+      "output": 0.0,
+      "cache_read": 0.0,
+      "cache_write": 0.0
+    },
+    "claude-sonnet-5": {
+      "input": 0.0,
+      "output": 0.0,
+      "cache_read": 0.0,
+      "cache_write": 0.0
+    },
+    "claude-opus-5": {
+      "input": 0.0,
+      "output": 0.0,
+      "cache_read": 0.0,
+      "cache_write": 0.0
+    }
+  }
+}

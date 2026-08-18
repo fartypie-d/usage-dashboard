@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>debt-radar — 작업 흐름</title>
+<style>
+*{box-sizing:border-box;} body{margin:0;}
+:root,[data-theme="dark"]{--bg:#262624;--panel:#30302e;--panel-2:#383734;--hover:#3f3e3b;--border:#413f3b;--border-2:#54524d;--text:#f3efe7;--text-2:#c3bcae;--muted:#8b857a;--grid:#37352f;--accent:#d97757;--accent-2:#c15f3c;--danger:#e5735a;--danger-bg:rgba(229,115,90,.14);--warn:#d9a441;--warn-bg:rgba(217,164,65,.13);--ok:#8aa56f;}
+[data-theme="light"]{--bg:#f5f1eb;--panel:#faf9f5;--panel-2:#efe9df;--hover:#e9e2d6;--border:#e3dccf;--border-2:#d4cbba;--text:#2b2a27;--text-2:#5c574d;--muted:#918a7c;--grid:#e8e1d5;--accent:#cc785c;--accent-2:#b5623f;--danger:#c6493b;--danger-bg:rgba(198,73,59,.10);--warn:#b5822a;--warn-bg:rgba(181,130,42,.13);--ok:#5e8c5a;}
+::-webkit-scrollbar{height:9px;width:9px;} ::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:6px;}
+.mono{font-family:'IBM Plex Mono',monospace;}.display{font-family:'Space Grotesk',sans-serif;}.hidden{display:none!important;}
+.btn{display:inline-grid;place-items:center;height:30px;min-width:30px;padding:0 10px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--text-2);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;}.btn:hover{background:var(--hover);color:var(--text);}.panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px;}.badge{font-family:'IBM Plex Mono',monospace;font-size:10.5px;padding:1px 6px;border-radius:5px;display:inline-block;border:1px solid var(--border-2);color:var(--text-2);}
+.flow-table{border-collapse:collapse;width:100%;font-size:12.5px;}.flow-table th,.flow-table td{border-bottom:1px solid var(--border);padding:8px 10px;text-align:center;white-space:nowrap;}.flow-table th{background:var(--panel-2);color:var(--text-2);font-family:'IBM Plex Mono',monospace;font-size:11px;}.flow-table td:first-child,.flow-table th:first-child{text-align:left;}.flow-row:hover{background:var(--hover);}.flow-row[aria-selected="true"]{background:var(--hover);}.flow-phase-button{border:0;background:transparent;color:var(--text);cursor:pointer;padding:0;font:inherit;text-align:left;}.flow-phase-button:hover,.flow-phase-button:focus-visible{text-decoration:underline;outline:0;color:var(--accent);}.flow-status{margin-left:8px;}.flow-status-active{color:var(--accent);border-color:var(--accent);}.flow-status-closed{color:var(--ok);border-color:var(--ok);}.flow-status-orphan{color:var(--danger);border-color:var(--danger);background:var(--danger-bg);}.cell-measured{color:var(--ok);}.cell-inferred{color:var(--warn);}.cell-active{color:var(--accent);}.cell-missing{color:var(--muted);}.cell-skipped{color:var(--danger);background:var(--danger-bg);border-radius:6px;}.attempt{border-left:2px solid var(--border-2);margin:4px 0 4px 8px;padding:2px 0 2px 10px;font-size:12.5px;}.md-link{color:var(--accent);text-decoration:none;}.md-link:hover,.md-link:focus-visible{text-decoration:underline;}
+</style>
+</head>
+<body>
+<div id="app" data-theme="dark" style="min-height:100vh;background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',system-ui,sans-serif;background-image:radial-gradient(var(--grid) 1px,transparent 1px);background-size:26px 26px;">
+  <div style="max-width:1240px;margin:0 auto;padding:clamp(14px,3vw,30px);">
+    <header style="display:flex;flex-wrap:wrap;align-items:center;gap:16px 20px;padding-bottom:18px;margin-bottom:22px;border-bottom:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:13px;margin-right:auto;"><div style="width:38px;height:38px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:grid;place-items:center;font-family:'IBM Plex Mono',monospace;font-weight:600;color:#fff;font-size:17px;">✓</div><div><div class="display" style="font-weight:700;font-size:19px;letter-spacing:-.3px;line-height:1.1;">debt-radar</div><div class="mono" style="font-size:12px;color:var(--muted);letter-spacing:.2px;">작업 흐름 · phase × 단계</div></div></div>
+      <div id="project-selector-wrap" class="hidden" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><label for="project-selector" class="mono" style="font-size:11.5px;color:var(--muted);">프로젝트</label><select id="project-selector" class="btn" style="height:36px;max-width:min(250px,58vw);text-align:left;"></select></div>
+      <a href="/" class="btn" style="text-decoration:none;display:inline-flex;align-items:center;height:36px;padding:0 13px;">← 사용량 대시보드</a>
+      <a href="/static/progress.html" class="btn" style="text-decoration:none;display:inline-flex;align-items:center;height:36px;padding:0 13px;">진행내역 →</a>
+      <button id="btn-theme" class="btn" style="height:36px;padding:0 13px;">☾ Dark</button>
+    </header>
+    <div id="warnings-banner" class="panel hidden" role="status" style="border-color:var(--warn);background:var(--warn-bg);font-size:12.5px;margin-bottom:16px;"></div>
+    <div id="loading-state" class="panel" aria-live="polite" style="padding:32px 24px;text-align:center;color:var(--muted);">작업 흐름을 불러오는 중…</div>
+    <div id="error-state" class="hidden panel" style="border-color:var(--danger);background:var(--danger-bg);padding:32px 24px;text-align:center;"><div style="font-size:26px;color:var(--danger);">⚠</div><div class="display" style="font-weight:600;font-size:17px;margin:8px 0 4px;">작업 흐름을 불러오지 못했습니다</div><div id="error-detail" style="color:var(--text-2);font-size:13px;margin-bottom:16px;"></div><button id="btn-retry" class="btn" style="height:36px;padding:0 16px;border-color:var(--danger);color:var(--danger);">다시 시도</button></div>
+    <main id="flow-content" class="hidden">
+      <div id="flow-legend" class="mono" style="display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--text-2);margin-bottom:12px;"><span class="cell-measured">● 실측</span><span class="cell-inferred">◪ 추정</span><span class="cell-active">◐ 진행중</span><span class="cell-missing">○ 미도달</span><span class="cell-skipped">⚠ 건너뜀</span></div>
+      <div id="flow-table-wrap" class="panel" style="padding:0;overflow-x:auto;"></div>
+      <div id="phase-detail" class="panel hidden" style="margin-top:16px;"></div>
+    </main>
+  </div>
+</div>
+<script src="/static/flow.js"></script>
+</body>
+</html>

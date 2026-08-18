@@ -1,0 +1,9 @@
+{
+  "project": "alpha",
+  "root": "/workspace/alpha",
+  "docs_dir": "documentation",
+  "next_phase": 15,
+  "active": [{"phase": 14, "slug": "registry-reader"}],
+  "branch": "develop",
+  "source": "fixture"
+}

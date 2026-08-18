@@ -1,0 +1,8 @@
+{
+  "project": "active-mixed",
+  "root": "/workspace/active-mixed",
+  "active": [
+    {"phase": 14, "slug": "valid"},
+    {"phase": "unknown", "slug": "invalid"}
+  ]
+}

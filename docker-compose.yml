@@ -1,0 +1,39 @@
+services:
+  usage-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: usage-dashboard:latest
+    container_name: usage-dashboard
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9280:9280"
+    volumes:
+      - ${HOME}/.claude/projects:/data/claude-projects:ro
+      - ${HOME}/.local/share/opencode:/data/opencode:ro
+      - ./config:/app/config:ro
+      # 진행내역(Phase 16): 호스트와 동일한 절대 경로로 마운트해야 레지스트리의
+      # root/docs_dir 조합이 컨테이너 안에서도 그대로 해석된다.
+      - ${HOME}/.local/state/orchestrate/registry:${HOME}/.local/state/orchestrate/registry:ro
+      - ./docs:${PWD:?docker compose must be run from the project root}/docs:ro
+    environment:
+      - USAGE_CLAUDE_ROOT=/data/claude-projects
+      - USAGE_OPENCODE_DB=/data/opencode/opencode.db
+      - USAGE_PRICING_FILE=/app/config/pricing.json
+      # 기본값(상대 경로 docs)은 WORKDIR /app 기준이라 존재하지 않는다.
+      - USAGE_DOCS_ROOT=${PWD:?docker compose must be run from the project root}/docs
+      # 기본값은 Path.home() 기준 — 컨테이너 HOME은 /home/dashuser라 항상 빈 레지스트리가 된다.
+      - USAGE_REGISTRY_DIR=${HOME}/.local/state/orchestrate/registry
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request,sys;r=urllib.request.urlopen(\"http://127.0.0.1:9280/health\",timeout=5);sys.exit(0 if r.status==200 else 1)'"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

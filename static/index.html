@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>debt-radar — 사용량</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  :root, [data-theme="dark"]{
+    --bg:#262624; --panel:#30302e; --panel-2:#383734; --hover:#3f3e3b;
+    --border:#413f3b; --border-2:#54524d; --text:#f3efe7; --text-2:#c3bcae; --muted:#8b857a;
+    --grid:#37352f; --accent:#d97757; --accent-2:#c15f3c;
+    --danger:#e5735a; --danger-bg:rgba(229,115,90,.14); --warn:#d9a441; --warn-bg:rgba(217,164,65,.13);
+    --ok:#8aa56f; --ok-bg:rgba(138,165,111,.14); --info:#d97757;
+  }
+  [data-theme="light"]{
+    --bg:#f5f1eb; --panel:#faf9f5; --panel-2:#efe9df; --hover:#e9e2d6;
+    --border:#e3dccf; --border-2:#d4cbba; --text:#2b2a27; --text-2:#5c574d; --muted:#918a7c;
+    --grid:#e8e1d5; --accent:#cc785c; --accent-2:#b5623f;
+    --danger:#c6493b; --danger-bg:rgba(198,73,59,.10); --warn:#b5822a; --warn-bg:rgba(181,130,42,.13);
+    --ok:#5e8c5a; --ok-bg:rgba(94,140,90,.12); --info:#cc785c;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+  @keyframes shimmer{0%{background-position:-400px 0;}100%{background-position:400px 0;}}
+  @keyframes rise{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+  ::-webkit-scrollbar{height:9px;width:9px;}
+  ::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:6px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  .sans{font-family:'IBM Plex Sans',system-ui,sans-serif;}
+  .display{font-family:'Space Grotesk',sans-serif;}
+  .skeleton{background:linear-gradient(90deg,var(--panel) 25%,var(--panel-2) 37%,var(--panel) 63%);background-size:800px 100%;animation:shimmer 1.4s linear infinite;border-radius:12px;border:1px solid var(--border);}
+  .hidden{display:none !important;}
+  .btn{display:inline-grid;place-items:center;height:30px;min-width:30px;padding:0 10px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--text-2);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;transition:background .15s,color .15s;}
+  .btn:hover{background:var(--hover);color:var(--text);}
+  .btn-accent{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .btn-accent:hover{background:var(--accent-2);}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px;}
+  .section-num{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:13px;color:var(--accent);border:1px solid var(--accent);border-radius:6px;padding:2px 7px;}
+  .section-title{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:18px;margin:0;}
+  .section-sub{font-size:12px;color:var(--muted);}
+  .th{padding:11px 18px;font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-family:'IBM Plex Mono',monospace;}
+  .td{padding:10px 18px;font-size:12.5px;}
+  .td-mono{padding:10px 18px;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:12.5px;}
+  .badge{font-family:'IBM Plex Mono',monospace;font-size:10.5px;padding:1px 6px;border-radius:5px;display:inline-block;}
+  .tag-danger{background:var(--danger);color:#fff;font-size:10px;font-weight:600;letter-spacing:.5px;padding:2px 6px;border-radius:5px;}
+  .tag-warn{background:var(--warn);color:#000;font-size:10px;font-weight:600;letter-spacing:.5px;padding:2px 6px;border-radius:5px;}
+  .tag-ok{border:1px solid var(--ok);color:var(--ok);font-size:10px;padding:2px 6px;border-radius:5px;}
+  .tag-muted{border:1px solid var(--border-2);color:var(--text-2);font-size:10px;padding:2px 6px;border-radius:5px;}
+  .warn-banner{background:var(--warn-bg);border:1px solid var(--warn);border-radius:10px;padding:10px 16px;display:flex;align-items:flex-start;gap:10px;font-size:12.5px;color:var(--text);margin-bottom:16px;}
+  .warn-banner button{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;}
+  @media (max-width:640px){
+    .grid-2{grid-template-columns:1fr !important;}
+    .kpi-grid{grid-template-columns:repeat(2,1fr) !important;}
+  }
+</style>
+</head>
+<body>
+<div id="app" data-theme="dark" style="min-height:100vh;background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',system-ui,sans-serif;background-image:radial-gradient(var(--grid) 1px,transparent 1px);background-size:26px 26px;">
+  <div style="max-width:1240px;margin:0 auto;padding:clamp(14px,3vw,30px);">
+
+    <!-- HEADER -->
+    <header style="display:flex;flex-wrap:wrap;align-items:center;gap:16px 20px;padding-bottom:18px;margin-bottom:22px;border-bottom:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:13px;margin-right:auto;">
+        <div style="width:38px;height:38px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:grid;place-items:center;font-family:'IBM Plex Mono',monospace;font-weight:600;color:#fff;font-size:17px;box-shadow:0 4px 16px rgba(58,107,255,.35);">⌘</div>
+        <div>
+          <div class="display" style="font-weight:700;font-size:19px;letter-spacing:-.3px;line-height:1.1;">debt-radar</div>
+          <div class="mono" style="font-size:12px;color:var(--muted);letter-spacing:.2px;">사용량 · Claude Code·opencode 위임 분석</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-2);">
+        <span id="live-dot" style="width:8px;height:8px;border-radius:50%;background:var(--ok);animation:pulse 2s ease-in-out infinite;"></span>
+        <span id="last-updated" class="mono">갱신 대기…</span>
+        <span id="freshness" class="mono" style="font-size:11px;color:var(--muted);"></span>
+        <button id="btn-refresh" class="btn" title="새로고침"><span id="refresh-icon">↻</span></button>
+      </div>
+      <a href="/static/flow.html" class="btn" style="text-decoration:none;display:inline-flex;align-items:center;height:36px;padding:0 13px;">작업 흐름 →</a>
+      <a href="/static/progress.html" class="btn" style="text-decoration:none;display:inline-flex;align-items:center;height:36px;padding:0 13px;">진행내역 →</a>
+      <div id="range-group" role="tablist" aria-label="기간 선택" style="display:flex;background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:3px;gap:2px;"></div>
+      <div id="source-group" role="tablist" aria-label="데이터 소스 선택" style="display:flex;background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:3px;gap:2px;"></div>
+      <button id="btn-theme" class="btn" style="display:flex;align-items:center;gap:7px;height:36px;padding:0 13px;">
+        <span id="theme-glyph" style="font-size:14px;">☾</span><span id="theme-label">Dark</span>
+      </button>
+    </header>
+
+    <!-- WARNINGS BANNER -->
+    <div id="warnings-banner" class="warn-banner hidden">
+      <span style="color:var(--warn);font-size:15px;">⚠</span>
+      <div id="warnings-text" style="flex:1;line-height:1.45;"></div>
+      <button id="warnings-dismiss" title="닫기">×</button>
+    </div>
+
+    <!-- LOADING SKELETON -->
+    <div id="loading-state">
+      <div style="display:grid;gap:16px;">
+        <div class="kpi-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">
+          <div class="skeleton" style="height:82px;"></div>
+          <div class="skeleton" style="height:82px;"></div>
+          <div class="skeleton" style="height:82px;"></div>
+          <div class="skeleton" style="height:82px;"></div>
+          <div class="skeleton" style="height:82px;"></div>
+        </div>
+        <div class="skeleton" style="height:280px;border-radius:14px;"></div>
+        <div class="skeleton" style="height:280px;border-radius:14px;"></div>
+      </div>
+    </div>
+
+    <!-- ERROR STATE -->
+    <div id="error-state" class="hidden" style="border:1px solid var(--danger);background:var(--danger-bg);border-radius:14px;padding:40px 28px;text-align:center;">
+      <div style="font-size:30px;color:var(--danger);">⚠</div>
+      <div class="display" style="font-weight:600;font-size:18px;margin:10px 0 4px;">데이터를 불러오지 못했습니다</div>
+      <div style="color:var(--text-2);font-size:13px;margin-bottom:18px;">API 응답이 없습니다 — 백엔드 연결을 확인하세요.</div>
+      <button id="btn-retry" style="height:38px;padding:0 20px;border-radius:9px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-weight:600;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;">다시 시도</button>
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div id="empty-state" class="hidden" style="border:1px dashed var(--border-2);border-radius:14px;padding:48px 28px;text-align:center;color:var(--muted);">
+      <div style="font-size:30px;">◔</div>
+      <div class="display" style="font-weight:600;font-size:18px;color:var(--text);margin:10px 0 4px;">선택한 기간에 세션 데이터가 없습니다</div>
+      <div style="font-size:13px;">다른 기간을 선택하거나 세션을 실행한 뒤 다시 확인하세요.</div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="content" class="hidden" style="display:grid;gap:26px;">
+
+      <!-- KPI STRIP -->
+      <div id="kpi-strip" class="kpi-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:12px;"></div>
+
+      <!-- SECTION 1: 모델 믹스 & 비용 -->
+      <section style="animation:rise .4s ease both;">
+        <div style="display:flex;align-items:baseline;gap:11px;margin-bottom:14px;flex-wrap:wrap;">
+          <span class="section-num">01</span>
+          <h2 class="section-title">모델 믹스 &amp; 비용</h2>
+          <span class="section-sub">프로젝트별 모델 사용 비율 · 일별 추정 비용 · 미스매치 경고</span>
+        </div>
+        <div class="grid-2" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;align-items:start;">
+          <div class="panel">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;gap:10px;flex-wrap:wrap;">
+              <span style="font-weight:600;font-size:13.5px;">프로젝트별 모델 사용 비율</span>
+              <div id="mix-sort-group" style="display:flex;gap:2px;"></div>
+            </div>
+            <div id="project-mix"></div>
+            <div id="model-legend" style="display:flex;flex-wrap:wrap;gap:9px 15px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);"></div>
+          </div>
+          <div class="panel">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
+              <span style="font-weight:600;font-size:13.5px;">일별 추정 비용</span>
+              <span id="cost-total-label" class="mono" style="font-size:12px;color:var(--text-2);"></span>
+            </div>
+            <div style="width:100%;position:relative;"><canvas id="cost-chart"></canvas></div>
+          </div>
+        </div>
+        <div id="mismatches-section" style="margin-top:16px;background:var(--danger-bg);border:1px solid var(--danger);border-radius:14px;padding:18px;"></div>
+      </section>
+
+      <!-- SECTION 2: 모델별 비용 순위 -->
+      <section style="animation:rise .4s ease both;">
+        <div style="display:flex;align-items:baseline;gap:11px;margin-bottom:14px;flex-wrap:wrap;">
+          <span class="section-num">02</span>
+          <h2 class="section-title">모델별 비용 순위</h2>
+          <span class="section-sub">비싼 모델부터 · 행을 누르면 agent별 내역</span>
+        </div>
+        <div id="model-rank" style="background:var(--panel);border:1px solid var(--border);border-radius:14px;overflow:hidden;"></div>
+      </section>
+
+      <!-- SECTION 3: 캐시 효율 -->
+      <section style="animation:rise .4s ease both;">
+        <div style="display:flex;align-items:baseline;gap:11px;margin-bottom:14px;flex-wrap:wrap;">
+          <span class="section-num">03</span>
+          <h2 class="section-title">캐시 효율</h2>
+          <span class="section-sub">cache_read / (input + cache_read)</span>
+        </div>
+        <div class="grid-2" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;align-items:start;">
+          <div style="display:grid;gap:12px;align-content:start;">
+            <div id="savings-now" style="background:var(--ok-bg);border:1px solid var(--ok);border-radius:14px;padding:18px;"></div>
+            <div id="savings-potential" style="background:var(--warn-bg);border:1px solid var(--warn);border-radius:14px;padding:18px;"></div>
+          </div>
+          <div class="panel">
+            <div style="font-weight:600;font-size:13.5px;margin-bottom:14px;">프로젝트 × 모델 캐시 read 비율</div>
+            <div id="cache-ratio-bars"></div>
+          </div>
+        </div>
+        <div id="low-cache-table" style="margin-top:16px;background:var(--panel);border:1px solid var(--border);border-radius:14px;overflow:hidden;"></div>
+      </section>
+
+      <!-- SECTION 4: 위임 체인 -->
+      <section style="animation:rise .4s ease both;">
+        <div style="display:flex;align-items:baseline;gap:11px;margin-bottom:14px;flex-wrap:wrap;">
+          <span class="section-num">04</span>
+          <h2 class="section-title">위임 체인 분석</h2>
+          <span class="section-sub">위임 비용 배분 · 셋업 vs 실작업 · 재위임</span>
+        </div>
+        <div class="grid-2" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;align-items:start;">
+          <div class="panel">
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-bottom:8px;">
+              <span>claude (orchestrator)</span><span>opencode agents →</span>
+            </div>
+            <div style="width:100%;position:relative;"><canvas id="flow-chart"></canvas></div>
+          </div>
+          <div id="overhead-cards" style="display:grid;gap:12px;align-content:start;"></div>
+        </div>
+        <div id="agents-table" style="margin-top:16px;background:var(--panel);border:1px solid var(--border);border-radius:14px;overflow:hidden;"></div>
+      </section>
+
+      <!-- SECTION 5: 세션 건강도 -->
+      <section style="animation:rise .4s ease both;">
+        <div style="display:flex;align-items:baseline;gap:11px;margin-bottom:14px;flex-wrap:wrap;">
+          <span class="section-num">05</span>
+          <h2 class="section-title">세션 건강도</h2>
+          <span class="section-sub">턴별 컨텍스트 성장 · compaction · 분리 권장</span>
+        </div>
+        <div id="sessions-grid" class="grid-2" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:12px;"></div>
+      </section>
+
+      <!-- SECTION 6: 위임 타임라인 -->
+      <section style="animation:rise .4s ease both;">
+        <div style="display:flex;align-items:baseline;gap:11px;margin-bottom:14px;flex-wrap:wrap;">
+          <span class="section-num">06</span>
+          <h2 class="section-title">위임 타임라인</h2>
+          <span class="section-sub">세션별 위임 흐름 · 병렬 서브에이전트 · 소요 시간</span>
+        </div>
+        <div id="flow-timeline" style="display:grid;gap:12px;"></div>
+      </section>
+
+      <footer style="text-align:center;color:var(--muted);font-size:11.5px;font-family:'IBM Plex Mono',monospace;padding:8px 0 4px;">
+        로컬 대시보드 · 60초 자동 갱신 · GET /api/summary · /api/delegation · /api/sessions
+      </footer>
+    </div>
+
+  </div>
+</div>
+<script src="/static/vendor/chart.min.js"></script>
+<script src="/static/support.js"></script>
+</body>
+</html>

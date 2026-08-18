@@ -1,0 +1,20 @@
+__pycache__/
+*.pyc
+# 슬래시 없음 — 워크트리의 .venv는 심링크라 `.venv/`로는 매칭되지 않는다
+.venv
+.orchestrate/
+.claude/worktrees/
+.claude/settings.local.json
+.pytest_cache/
+.coverage
+htmlcov/
+node_modules/
+*.egg-info/
+config/pricing.json
+docker-compose.override.yml
+# 로컬 편집기·MCP 설정 (개인 환경에 종속)
+.vscode/
+.mcp.json
+
+# API 키 등 로컬 비밀 — 절대 커밋 금지 (public 리모트 존재)
+.env

@@ -1,0 +1,49 @@
+# venv·cache
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# tools·configs
+.orchestrate/
+.claude/
+.opencode/
+
+# docs (배포에 불필요)
+docs/archive/
+docs/reviews/
+docs/superpowers/
+
+# fixture (컨테이너는 실데이터 :ro 마운트 사용)
+tests/fixtures/
+
+# git
+.git/
+.gitignore
+.gitattributes
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# builder 산출물
+build/
+dist/
+*.egg-info/
+
+# Docker 자체 참조 (불필요)
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# scripts (개발용)
+scripts/

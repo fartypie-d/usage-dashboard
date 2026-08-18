@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>debt-radar — 진행내역</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  :root, [data-theme="dark"]{
+    --bg:#262624; --panel:#30302e; --panel-2:#383734; --hover:#3f3e3b;
+    --border:#413f3b; --border-2:#54524d; --text:#f3efe7; --text-2:#c3bcae; --muted:#8b857a;
+    --grid:#37352f; --accent:#d97757; --accent-2:#c15f3c;
+    --danger:#e5735a; --danger-bg:rgba(229,115,90,.14); --warn:#d9a441; --warn-bg:rgba(217,164,65,.13);
+    --ok:#8aa56f; --ok-bg:rgba(138,165,111,.14); --info:#d97757;
+  }
+  [data-theme="light"]{
+    --bg:#f5f1eb; --panel:#faf9f5; --panel-2:#efe9df; --hover:#e9e2d6;
+    --border:#e3dccf; --border-2:#d4cbba; --text:#2b2a27; --text-2:#5c574d; --muted:#918a7c;
+    --grid:#e8e1d5; --accent:#cc785c; --accent-2:#b5623f;
+    --danger:#c6493b; --danger-bg:rgba(198,73,59,.10); --warn:#b5822a; --warn-bg:rgba(181,130,42,.13);
+    --ok:#5e8c5a; --ok-bg:rgba(94,140,90,.12); --info:#cc785c;
+  }
+  ::-webkit-scrollbar{height:9px;width:9px;}
+  ::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:6px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  .display{font-family:'Space Grotesk',sans-serif;}
+  .hidden{display:none !important;}
+  .btn{display:inline-grid;place-items:center;height:30px;min-width:30px;padding:0 10px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--text-2);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;transition:background .15s,color .15s;}
+  .btn:hover{background:var(--hover);color:var(--text);}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px;}
+  .badge{font-family:'IBM Plex Mono',monospace;font-size:10.5px;padding:1px 6px;border-radius:5px;display:inline-block;border:1px solid var(--border-2);color:var(--text-2);}
+
+  /* ── 렌더링된 마크다운 본문 ────────────────────────────────── */
+  .md-h{font-family:'Space Grotesk',sans-serif;font-weight:600;line-height:1.3;margin:18px 0 8px;}
+  h1.md-h{font-size:19px;} h2.md-h{font-size:16px;} h3.md-h{font-size:14px;} h4.md-h{font-size:13px;}
+  .md-p{font-size:13.5px;line-height:1.65;margin:0 0 10px;}
+  .md-list{font-size:13.5px;line-height:1.65;padding-left:20px;margin:0 0 10px;}
+  .md-quote{border-left:3px solid var(--border-2);margin:0 0 10px;padding:2px 0 2px 12px;color:var(--text-2);}
+  .md-table-wrap{overflow-x:auto;margin:0 0 12px;}
+  .md-table{border-collapse:collapse;font-size:12.5px;min-width:100%;}
+  .md-table th,.md-table td{border:1px solid var(--border);padding:6px 10px;text-align:left;vertical-align:top;}
+  .md-table th{background:var(--panel-2);color:var(--text-2);font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.4px;}
+  .md-pre{background:var(--panel-2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;overflow-x:auto;margin:0 0 12px;}
+  .md-pre code{font-size:12px;line-height:1.55;}
+  .md-code{background:var(--panel-2);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:12px;}
+  .md-link{color:var(--accent);}
+  .md-hr{border:none;border-top:1px solid var(--border);margin:16px 0;}
+
+  /* ── phase × task 격자 ──────────────────────────────────────── */
+  .phase-row{border-top:1px solid var(--border);padding:12px 14px;cursor:pointer;}
+  .phase-row:hover{background:var(--hover);}
+  .task-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border-2);border-radius:7px;padding:4px 9px;cursor:pointer;font-size:12px;}
+  .task-chip:hover{background:var(--hover);}
+  .task-chip[aria-selected="true"]{border-color:var(--accent);color:var(--accent);}
+
+  /* ── 쪽지시험 ─────────────────────────────────────────────── */
+  .quiz-turn{border:1px solid var(--border);border-radius:9px;padding:9px 12px;margin:0 0 8px;font-size:13px;line-height:1.6;}
+  .quiz-turn.q{border-left:3px solid var(--accent);}
+  .quiz-turn.a{border-left:3px solid var(--border-2);color:var(--text-2);}
+  .quiz-input{width:100%;min-height:64px;resize:vertical;background:var(--panel-2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-family:inherit;font-size:13px;padding:9px 12px;}
+  .quiz-record{font-size:12px;color:var(--text-2);padding:3px 0;}
+  @media (max-width:900px){ .progress-grid{grid-template-columns:1fr !important;} }
+</style>
+</head>
+<body>
+<div id="app" data-theme="dark" style="min-height:100vh;background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',system-ui,sans-serif;background-image:radial-gradient(var(--grid) 1px,transparent 1px);background-size:26px 26px;">
+  <div style="max-width:1240px;margin:0 auto;padding:clamp(14px,3vw,30px);">
+
+    <header style="display:flex;flex-wrap:wrap;align-items:center;gap:16px 20px;padding-bottom:18px;margin-bottom:22px;border-bottom:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:13px;margin-right:auto;">
+        <div style="width:38px;height:38px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:grid;place-items:center;font-family:'IBM Plex Mono',monospace;font-weight:600;color:#fff;font-size:17px;">✓</div>
+        <div>
+          <div class="display" style="font-weight:700;font-size:19px;letter-spacing:-.3px;line-height:1.1;">debt-radar</div>
+          <div class="mono" style="font-size:12px;color:var(--muted);letter-spacing:.2px;">진행내역 · phase × task</div>
+        </div>
+      </div>
+      <div id="project-selector-wrap" class="hidden" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <label for="project-selector" class="mono" style="font-size:11.5px;color:var(--muted);">프로젝트</label>
+        <select id="project-selector" class="btn" style="height:36px;max-width:min(250px,58vw);text-align:left;"></select>
+        <span id="project-load-state" class="mono" aria-live="polite" style="font-size:11.5px;color:var(--text-2);"></span>
+      </div>
+      <a href="/" class="btn" style="text-decoration:none;display:inline-flex;align-items:center;height:36px;padding:0 13px;">← 사용량 대시보드</a>
+      <a href="/static/flow.html" class="btn" style="text-decoration:none;display:inline-flex;align-items:center;height:36px;padding:0 13px;">작업 흐름 →</a>
+      <button id="btn-theme" class="btn" style="height:36px;padding:0 13px;">☾ Dark</button>
+    </header>
+
+    <div id="warnings-banner" class="panel hidden" style="border-color:var(--warn);background:var(--warn-bg);font-size:12.5px;margin-bottom:16px;"></div>
+
+    <div id="error-state" class="hidden panel" style="border-color:var(--danger);background:var(--danger-bg);padding:32px 24px;text-align:center;">
+      <div style="font-size:26px;color:var(--danger);">⚠</div>
+      <div class="display" style="font-weight:600;font-size:17px;margin:8px 0 4px;">진행내역을 불러오지 못했습니다</div>
+      <div id="error-detail" style="color:var(--text-2);font-size:13px;margin-bottom:16px;"></div>
+      <button id="btn-retry" class="btn" style="height:36px;padding:0 16px;border-color:var(--danger);color:var(--danger);">다시 시도</button>
+    </div>
+
+    <div id="empty-state" class="hidden" style="border:1px dashed var(--border-2);border-radius:14px;padding:44px 24px;text-align:center;color:var(--muted);">
+      <div style="font-size:26px;">◔</div>
+      <div class="display" style="font-weight:600;font-size:17px;color:var(--text);margin:8px 0 4px;">phase 문서를 찾지 못했습니다</div>
+      <div style="font-size:13px;">docs/ 아래에 지시서가 있는지 확인하세요.</div>
+    </div>
+
+    <div id="progress-grid" class="progress-grid" style="display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:16px;align-items:start;">
+      <section id="phase-list" class="panel" style="padding:0;overflow:hidden;"></section>
+      <section id="doc-view" class="panel"></section>
+    </div>
+
+    <footer style="text-align:center;color:var(--muted);font-size:11.5px;font-family:'IBM Plex Mono',monospace;padding:20px 0 4px;">
+      로컬 대시보드 · GET /api/progress · /api/progress/phase/{n}
+    </footer>
+  </div>
+</div>
+<script src="/static/markdown.js"></script>
+<script src="/static/progress.js"></script>
+</body>
+</html>

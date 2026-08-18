@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=75.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "debt-radar"
+version = "0.1.0"
+description = "debt-radar — Claude Code/opencode 세션의 사용량·워크플로우 건전성·위임부채를 보는 로컬 대시보드"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]",
+    "markdown-it-py>=3.0",
+    "anthropic>=0.40",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "ruff",
+    "httpx2",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "pricing_gap: 단가 미등록 모델을 알리는 데이터 간극 체크 (기본 실행 제외)",
+]
+addopts = "-m 'not pricing_gap'"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "FURB", "SIM", "UP"]

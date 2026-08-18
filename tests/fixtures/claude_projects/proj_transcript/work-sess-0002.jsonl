@@ -1,0 +1,1 @@
+{"type":"assistant","timestamp":"2026-07-23T10:00:00.000Z","cwd":"/anon/proj_transcript/.claude/worktrees/phase3-wt-sample","sessionId":"work-sess-0002","message":{"role":"assistant","model":"claude-opus-4-8","usage":{"input_tokens":5,"output_tokens":5,"cache_read_input_tokens":1,"cache_creation_input_tokens":1},"content":[{"type":"text","text":"워크트리 세션 응답."}]}}
